@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 
-import sys
-import random
-
+import sys, random, string
 
 
 #
 def make_chains(corpus):
     """Takes an input text as a string and returns a dictionary of
     markov chains."""
-    corpus = corpus.lower()
     splitcorpus = corpus.split()
     #maybe strip it? if we need to? 
 
@@ -32,31 +29,43 @@ def make_text(chains):
     # takes output (dictionary) of make_chains
     # print a random bigram (key)
 
-    thekeys = chains.keys()
-    thebigram = random.choice(thekeys)
+    upperkeys = []
+
+    for key in chains.keys():
+        if key[0][0] in string.uppercase:
+            upperkeys.append(key)
+
+    thebigram = random.choice(upperkeys)
 
     generated = []
 
     generated.append(thebigram[0])
     generated.append(thebigram[1])
 
-    # write a loop
-        # using random.choice() output the predicted string
-        # reassign bigram to the new bigram
-    for i in range(30):
+    endpunc = False
+
+    while not endpunc:
         nextword = random.choice(chains.get(thebigram))
         generated.append(nextword)
         thebigram = (thebigram[1], nextword)
+        if len(generated) >= 15 and ('.' in nextword or '!' in nextword):
+            endpunc = True
 
-    return ' '.join(generated)
+    return ' '.join(generated) 
 
 def main():
     args = sys.argv
-    script, filename = args
+    script, filename1, filename2 = args
 
-    f = open(filename)
-    input_text = f.read()
-    f.close()
+    f1 = open(filename1)
+    input_text1 = f1.read()
+    f1.close()
+
+    f2 = open(filename2)
+    input_text2 = f2.read()
+    f2.close()
+
+    input_text = input_text1 + input_text2
 
     chain_dict = make_chains(input_text)
     random_text = make_text(chain_dict)
