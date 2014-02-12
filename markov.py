@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 import sys, random, string
 
@@ -8,12 +8,11 @@ def make_chains(corpus):
     """Takes an input text as a string and returns a dictionary of
     markov chains."""
     splitcorpus = corpus.split()
-    #maybe strip it? if we need to? 
-
-    # initialize empty dictionary
+    
+    ## initialize empty dictionary
     chains = {}
     
-    #loop through list of strings, assign each bigram to a key
+    ## loop through list of strings, assign each bigram to a key
     for i in range(len(splitcorpus) - 2):
         bigram = (splitcorpus[i], splitcorpus[i+1])
         if not chains.get(bigram):
@@ -26,32 +25,80 @@ def make_chains(corpus):
 def make_text(chains):
     """Takes a dictionary of markov chains and returns random text
     based off an original text."""
-    # takes output (dictionary) of make_chains
-    # print a random bigram (key)
 
-    upperkeys = []
+    startkeys = []
+    openquotekeys = []
 
+    ## beginning: make subsets of keys for capitals and open quotes
     for key in chains.keys():
         if key[0][0] in string.uppercase:
-            upperkeys.append(key)
+            startkeys.append(key)
+        if key[0][0] in '"':
+            openquotekeys.append(key)
+            startkeys.append(key)
+        if  key[1][0] in '"':
+            openquotekeys.append(key)
 
-    thebigram = random.choice(upperkeys)
 
-    # TODO : only use lowercase letters (except I) inside generated text
+    ## beginning: randomly choose first key
+    thebigram = random.choice(startkeys)
 
+
+    ##  middle: initialize generated sentence
     generated = []
 
+    ## middle: add the first two words to the sentence
     generated.append(thebigram[0])
     generated.append(thebigram[1])
 
-    endpunc = False
+    ## middle: set up conditions for loop ending
+    ending = False
+    inquote = False
 
-    while not endpunc:
-        nextword = random.choice(chains.get(thebigram))
+    ## check if quote is already open
+    if thebigram in openquotekeys and thebigram[0][-1] not in '"' and thebigram[1][-1] not in '"':
+        inquote = True
+
+    ## ending: don't loop until has added first bigram and set up ending conditions
+    while not ending:
+
+        # TRY to get values that don't end with quote where not in quote and vice versa
+        if not inquote:
+            allvalues = chains.get(thebigram)
+            nextvalues = []
+            for value in allvalues:
+                if value[-1] != '"':
+                    nextvalues.append(value)
+            if len(nextvalues) == 0:
+                nextvalues = allvalues
+        else:
+            allvalues = chains.get(thebigram)
+            nextvalues = []
+            for value in allvalues:
+                if value[0] != '"':
+                    nextvalues.append(value)
+            if len(nextvalues) == 0:
+                nextvalues = allvalues
+
+
+        # get a random value from bigram's values
+        nextword = random.choice(nextvalues)
         generated.append(nextword)
         thebigram = (thebigram[1], nextword)
-        if len(generated) >= 15 and ('.' in nextword or '!' in nextword):
-            endpunc = True
+
+
+        # set up inquote checking
+        if nextword[0] in '"':
+            inquote = True
+        
+        if inquote == True and nextword[-1] in '"':
+            inquote = False
+
+        # close only if conditions are met: at least 15 words, no open quotes, ending punctuation in last word        
+        if len(generated) >= 15 and inquote == False:
+            if ('.' in nextword or '!' in nextword or '?' in nextword):
+                ending = True
+        
 
     return ' '.join(generated) 
 
@@ -60,15 +107,15 @@ def main():
 
     input_text = ""
 
+    ## take any number of input files
     for eachfile in args[1:]:
         f = open(eachfile)
-        input_text += f.read()
+        input_text += ' ' + f.read()
         f.close()
 
     chain_dict = make_chains(input_text)
     random_text = make_text(chain_dict)
     print random_text
 
-#just let this one run. we'll explain it later.
 if __name__ == "__main__":
     main()
