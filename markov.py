@@ -37,6 +37,8 @@ def make_text(chains):
 
     thebigram = random.choice(upperkeys)
 
+    # TODO : only use lowercase letters (except I) inside generated text
+
     generated = []
 
     generated.append(thebigram[0])
@@ -55,17 +57,13 @@ def make_text(chains):
 
 def main():
     args = sys.argv
-    script, filename1, filename2 = args
 
-    f1 = open(filename1)
-    input_text1 = f1.read()
-    f1.close()
+    input_text = ""
 
-    f2 = open(filename2)
-    input_text2 = f2.read()
-    f2.close()
-
-    input_text = input_text1 + input_text2
+    for eachfile in args[1:]:
+        f = open(eachfile)
+        input_text += f.read()
+        f.close()
 
     chain_dict = make_chains(input_text)
     random_text = make_text(chain_dict)
