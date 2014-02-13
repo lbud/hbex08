@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, random, string
+import sys, random, string, os, twitter
 
 
 #
@@ -124,6 +124,15 @@ def make_text(chains):
 
     return ' '.join(generated) 
 
+def tweeting(thetweet):
+    api = twitter.Api(consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
+                      consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET'),
+                      access_token_key=os.environ.get('THE_KEY_GIVEN'),
+                      access_token_secret=os.environ.get('THE_KEY_SECRET'))
+
+    api.PostUpdate(thetweet)
+
+
 def main():
     args = sys.argv
 
@@ -137,7 +146,8 @@ def main():
 
     chain_dict = make_chains(input_text)
     random_text = make_text(chain_dict)
-    print random_text
+    
+    tweeting(random_text)
 
 if __name__ == "__main__":
     main()
