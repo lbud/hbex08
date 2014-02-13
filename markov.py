@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import sys, random, string, os, twitter
+import sys, random, string, os
+# import twitter
 
 
 #
@@ -33,10 +34,10 @@ def make_text(chains):
     for key in chains.keys():
         if key[0][0] in string.uppercase:
             startkeys.append(key)
-        if key[0][0] in '"':
+        if key[0][0] in '"\'':
             openquotekeys.append(key)
             startkeys.append(key)
-        if  key[1][0] in '"':
+        if  key[1][0] in '"\'':
             openquotekeys.append(key)
 
 
@@ -61,7 +62,7 @@ def make_text(chains):
     inquote = False
 
     ## check if quote is already open
-    if thebigram in openquotekeys and thebigram[0][-1] not in '"' and thebigram[1][-1] not in '"':
+    if thebigram in openquotekeys and thebigram[0][-1] not in '"\'' and thebigram[1][-1] not in '"\'':
         inquote = True
 
     ## ending: don't loop until has added first bigram and set up ending conditions
@@ -72,7 +73,7 @@ def make_text(chains):
             allvalues = chains.get(thebigram)
             nextvalues = []
             for value in allvalues:
-                if value[-1] != '"':
+                if value[-1] != '"\'':
                     nextvalues.append(value)
             if len(nextvalues) == 0:
                 nextvalues = allvalues
@@ -80,7 +81,7 @@ def make_text(chains):
             allvalues = chains.get(thebigram)
             nextvalues = []
             for value in allvalues:
-                if value[0] != '"':
+                if value[0] != '"\'':
                     nextvalues.append(value)
             if len(nextvalues) == 0:
                 nextvalues = allvalues
@@ -105,10 +106,10 @@ def make_text(chains):
 
 
         # set up inquote checking
-        if nextword[0] in '"':
+        if nextword[0] in '"\'':
             inquote = True
         
-        if inquote == True and nextword[-1] in '"':
+        if inquote == True and nextword[-1] in '"\'':
             inquote = False
 
         newtotal = thelength + len(nextword) + 1
@@ -124,13 +125,13 @@ def make_text(chains):
 
     return ' '.join(generated) 
 
-def tweeting(thetweet):
-    api = twitter.Api(consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
-                      consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET'),
-                      access_token_key=os.environ.get('THE_KEY_GIVEN'),
-                      access_token_secret=os.environ.get('THE_KEY_SECRET'))
+# def tweeting(thetweet):
+#     api = twitter.Api(consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
+#                       consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET'),
+#                       access_token_key=os.environ.get('THE_KEY_GIVEN'),
+#                       access_token_secret=os.environ.get('THE_KEY_SECRET'))
 
-    api.PostUpdate(thetweet)
+#     api.PostUpdate(thetweet)
 
 
 def main():
@@ -147,7 +148,10 @@ def main():
     chain_dict = make_chains(input_text)
     random_text = make_text(chain_dict)
     
-    tweeting(random_text)
+    print '\n', random_text, '\n'
+    # for chainkey in chain_dict:
+    #     print chainkey, chain_dict.get(chainkey)
+    # tweeting(random_text)
 
 if __name__ == "__main__":
     main()
