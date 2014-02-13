@@ -44,12 +44,17 @@ def make_text(chains):
     thebigram = random.choice(startkeys)
 
 
-    ##  middle: initialize generated sentence
+    ##  middle: initialize generated sentence and length counter
     generated = []
+
+    thelength = 0
 
     ## middle: add the first two words to the sentence
     generated.append(thebigram[0])
     generated.append(thebigram[1])
+    thelength += len(thebigram[0] + thebigram[1]) +1
+
+
 
     ## middle: set up conditions for loop ending
     ending = False
@@ -80,10 +85,22 @@ def make_text(chains):
             if len(nextvalues) == 0:
                 nextvalues = allvalues
 
+### end_gracefully
+        if thelength >= 110:
+            allvalues = chains.get(thebigram)
+            nextvalues = []
+            for value in allvalues:
+                if ('.' in value or '!' in value or '?' in value):
+                    nextvalues.append(value)
+            if len(nextvalues) == 0:
+                nextvalues = allvalues
+
+
 
         # get a random value from bigram's values
         nextword = random.choice(nextvalues)
         generated.append(nextword)
+        thelength += len(nextword) + 1
         thebigram = (thebigram[1], nextword)
 
 
@@ -94,10 +111,15 @@ def make_text(chains):
         if inquote == True and nextword[-1] in '"':
             inquote = False
 
-        # close only if conditions are met: at least 15 words, no open quotes, ending punctuation in last word        
-        if len(generated) >= 15 and inquote == False:
+        newtotal = thelength + len(nextword) + 1
+
+        # close only if conditions are met: no open quotes, ending punctuation in last word        
+        if inquote == False and newtotal <= 140:
             if ('.' in nextword or '!' in nextword or '?' in nextword):
                 ending = True
+        elif newtotal > 140:
+            del generated[-1]
+            ending = True
         
 
     return ' '.join(generated) 
