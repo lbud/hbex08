@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
-import sys, random, string, os
-# import twitter
-
+import sys, random, string, os, twitter
+from twilio.rest import TwilioRestClient
 
 #
 def make_chains(corpus):
@@ -32,12 +31,12 @@ def make_text(chains):
 
     ## beginning: make subsets of keys for capitals and open quotes
     for key in chains.keys():
-        if key[0][0] in string.uppercase:
+        if key[0][0] in string.uppercase and key[0][-1] not in '.?!' and key[1][-1] not in '.?!':
             startkeys.append(key)
         if key[0][0] in '"\'':
             openquotekeys.append(key)
             startkeys.append(key)
-        if  key[1][0] in '"\'':
+        if  key [0] [0] in string.uppercase and key[1][0] in '"\'':
             openquotekeys.append(key)
 
 
@@ -87,7 +86,7 @@ def make_text(chains):
                 nextvalues = allvalues
 
 ### end_gracefully
-        if thelength >= 110:
+        if thelength >= 95:
             allvalues = chains.get(thebigram)
             nextvalues = []
             for value in allvalues:
@@ -115,7 +114,7 @@ def make_text(chains):
         newtotal = thelength + len(nextword) + 1
 
         # close only if conditions are met: no open quotes, ending punctuation in last word        
-        if inquote == False and newtotal <= 140:
+        if inquote == False and 35 <= newtotal <= 140:
             if ('.' in nextword or '!' in nextword or '?' in nextword):
                 ending = True
         elif newtotal > 140:
@@ -125,13 +124,22 @@ def make_text(chains):
 
     return ' '.join(generated) 
 
-# def tweeting(thetweet):
-#     api = twitter.Api(consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
-#                       consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET'),
-#                       access_token_key=os.environ.get('THE_KEY_GIVEN'),
-#                       access_token_secret=os.environ.get('THE_KEY_SECRET'))
+def tweeting(thetweet):
+    api = twitter.Api(consumer_key=os.environ.get('TWITTER_API_KEY'),
+                      consumer_secret=os.environ.get('TWITTER_API_SECRET'),
+                      access_token_key=os.environ.get('TWITTER_TOKEN_KEY'),
+                      access_token_secret=os.environ.get('TWITTER_TOKEN_SECRET'))
 
-#     api.PostUpdate(thetweet)
+    api.PostUpdate(thetweet)
+
+def texting(thetext):
+    account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+    auth_token  = os.environ.get('TWILIO_AUTH_TOKEN')
+    client = TwilioRestClient(account_sid, auth_token)
+     
+    message = client.sms.messages.create(body=thetext,
+        to=os.environ.get('MY_PHONE_NUMBER'),
+        from_=os.environ.get('TWILIO_PHONE_NUMBER'))
 
 
 def main():
@@ -148,10 +156,38 @@ def main():
     chain_dict = make_chains(input_text)
     random_text = make_text(chain_dict)
     
+    # tell user the output, ask what they want to do with it
+    print "so I got:"
     print '\n', random_text, '\n'
-    # for chainkey in chain_dict:
-    #     print chainkey, chain_dict.get(chainkey)
-    # tweeting(random_text)
+    print "Tell me: want to TEXT that, TWEET it, or BOTH? Say N for neither."
+    response = raw_input("> ")
+
+    while True:
+        if response.lower() == 'text':
+            texting(random_text)
+            print '\n', "Sweet. Texted:"
+            print random_text, '\n'
+            break
+        elif response.lower() == 'tweet':
+            tweeting(random_text)
+            print '\n', "Sweet. Tweeted:"
+            print random_text, '\n'
+            break
+        elif response.lower() == 'both':
+            texting(random_text)
+            tweeting(random_text)
+            print '\n', "Sweet. Texted and tweeted:"
+            print random_text, '\n'
+            break
+        elif response.lower() == 'n':
+            print "Cool, never mind then. We're good."
+            break
+        else:
+            print "Sorry, didn't catch that. TEXT, TWEET, BOTH, or N (neither)?"
+            response = raw_input("> ")
+
+
+
 
 if __name__ == "__main__":
     main()
